@@ -479,3 +479,59 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	fragColor = vec4( mix(bgCol, col, step(0.0, t)), 1.0 );
 }
 ```
+
+
+#### Ray tracing 5
+
+Shadertoy
+```C
+float Width = 800.0;
+float Height = 450.0;
+vec3 RayOrigin = vec3(0, 0, 1);
+float SphereRadius = 0.6;
+vec3 SphereCenter = vec3(0, 0, 0);
+vec3 LightDir = vec3(-1, -1, -1);
+
+float HitSphere(vec3 Center, float Radius, vec3 RayDirection)
+{
+    vec3 OC = Center - RayOrigin;
+    float a = dot(RayDirection, RayDirection);
+    float b = -2.0f * dot(RayDirection, OC);
+    float c = dot(OC, OC) - Radius * Radius;
+    float Discriminant = b * b - 4.0f * a * c;
+    float Result = 0.0;
+    if(Discriminant < 0.0)
+    {
+        Result = -1.0;
+    }
+    else
+    {
+        Result = (-b - sqrt(Discriminant)) / 2.0 * a;
+    }
+    return(Result);
+}
+
+void mainImage(out vec4 FragColor, in vec2 FragCoord)
+{
+    vec2 Coord = vec2(FragCoord.x / Width, FragCoord.y / Height);
+    Coord = Coord * 2.0f - 1.0f;
+    Coord.x = Coord.x * Width / Height;
+    vec3 RayDirection = vec3(Coord.x, Coord.y, -1.0f);
+    float t = HitSphere(SphereCenter, SphereRadius, RayDirection);
+    if(t > 0.0)
+    {
+        vec3 Normal = (RayOrigin + t * RayDirection) - vec3(0, 0, -1);
+        vec3 Color = 0.5 * vec3(Normal.x + 1.0, Normal.y + 1.0, Normal.z + 1.0);
+        
+        float d = max(dot(Normal, -LightDir), 0.0f); // cos(angle), cos(> 90) == -1
+        //Color = vec3(1, 0, 0);
+        Color *= d;
+        
+        FragColor = vec4(Color, 1.0f);
+    }
+    else
+    {
+        FragColor = vec4(0.0, 0.0, 1.0, 1.0f);
+    }
+}
+```
